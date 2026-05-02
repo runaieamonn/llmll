@@ -1,0 +1,12 @@
+["do",
+  ["def", "nums", ["range", 1, 11]],
+  ["def", "evens", ["filter",
+    ["lambda", ["x"], ["eq", ["mod", "$x", 2], 0]],
+    "$nums"]],
+  ["def", "squared", ["map",
+    ["lambda", ["x"], ["mul", "$x", "$x"]],
+    "$evens"]],
+  ["print", ["reduce",
+    ["lambda", ["a", "b"], ["add", "$a", "$b"]],
+    0,
+    "$squared"]]]

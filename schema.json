@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "llmll program",
+  "description": "JSON schema for well-formed llmll programs. Validates structural well-formedness: a program is any JSON value; calls are arrays whose first element is a known operator name. Semantic validity (arity, types) is checked at runtime.",
+  "$ref": "#/definitions/expr",
+  "definitions": {
+    "expr": {
+      "anyOf": [
+        {"type": "null"},
+        {"type": "boolean"},
+        {"type": "number"},
+        {"type": "string"},
+        {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/definitions/expr"}
+        },
+        {"$ref": "#/definitions/call"},
+        {"$ref": "#/definitions/literal_array"}
+      ]
+    },
+    "call": {
+      "type": "array",
+      "minItems": 1,
+      "items": [{"$ref": "#/definitions/op_name"}],
+      "additionalItems": {"$ref": "#/definitions/expr"}
+    },
+    "literal_array": {
+      "type": "array",
+      "minItems": 0,
+      "items": [{"not": {"type": "string"}}],
+      "additionalItems": {"$ref": "#/definitions/expr"}
+    },
+    "op_name": {
+      "type": "string",
+      "enum": [
+        "if", "let", "lambda", "def", "do", "try", "call",
+        "and", "or", "not",
+        "add", "sub", "mul", "div", "mod", "neg",
+        "eq", "ne", "lt", "gt", "le", "ge",
+        "list", "len", "get", "append", "concat", "slice", "range",
+        "map", "filter", "reduce",
+        "dict", "keys", "vals", "has", "put",
+        "str", "split", "join",
+        "type",
+        "print", "read",
+        "closure", "error"
+      ]
+    }
+  }
+}

@@ -1,0 +1,7 @@
+["do",
+  ["def", "fb", ["lambda", ["n"],
+    ["if", ["eq", ["mod", "$n", 15], 0], "FizzBuzz",
+      ["if", ["eq", ["mod", "$n", 3], 0], "Fizz",
+        ["if", ["eq", ["mod", "$n", 5], 0], "Buzz",
+          ["str", "$n"]]]]]],
+  ["map", ["lambda", ["i"], ["print", ["call", "$fb", "$i"]]], ["range", 1, 16]]]

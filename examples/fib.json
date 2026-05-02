@@ -1,0 +1,8 @@
+["do",
+  ["def", "fib", ["lambda", ["n"],
+    ["if", ["lt", "$n", 2],
+      "$n",
+      ["add",
+        ["call", "$fib", ["sub", "$n", 1]],
+        ["call", "$fib", ["sub", "$n", 2]]]]]],
+  ["print", ["call", "$fib", 12]]]

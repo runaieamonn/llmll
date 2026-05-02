@@ -1,0 +1,6 @@
+["do",
+  ["def", "fact", ["lambda", ["n"],
+    ["if", ["le", "$n", 1],
+      1,
+      ["mul", "$n", ["call", "$fact", ["sub", "$n", 1]]]]]],
+  ["print", ["call", "$fact", 10]]]
