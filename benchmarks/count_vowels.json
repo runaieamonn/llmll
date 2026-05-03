@@ -1,0 +1,4 @@
+["print", ["len", ["filter",
+  ["lambda", ["c"],
+    ["or", ["eq", "$c", "a"], ["eq", "$c", "e"], ["eq", "$c", "i"], ["eq", "$c", "o"], ["eq", "$c", "u"]]],
+  ["split", "hello world", ""]]]]

@@ -1,0 +1,233 @@
+# Restaurant recommendation reasoning trace.
+# User asked: "italian dinner, $80 budget, near downtown SF, tonight, party of 4"
+
+# --- observations ---
+
+- id: o_user
+  kind: observe
+  facts:
+    user:
+      cuisine: "italian"
+      budget: 80
+      party: 4
+      loc: [37.78, -122.41]
+  src: query
+  conf: 1.0
+
+- id: o_time
+  kind: observe
+  facts:
+    time:
+      now: "19:30"
+  src: system_clock
+  conf: 1.0
+
+- id: o_loc
+  kind: observe
+  facts:
+    user:
+      loc: [37.78, -122.41]
+  src: gps
+  conf: 0.99
+
+- id: o_r1
+  kind: observe
+  facts:
+    r1:
+      name: "Tony's"
+      cuisine: "italian"
+      price: 45
+      loc: [37.79, -122.40]
+      rating: 4.6
+      hours: ["17:00", "22:00"]
+  src: "yelp:r1"
+  conf: 0.85
+
+- id: o_r2
+  kind: observe
+  facts:
+    r2:
+      name: "Casa Mia"
+      cuisine: "italian"
+      price: 65
+      loc: [37.79, -122.42]
+      rating: 4.4
+      hours: ["18:00", "23:00"]
+  src: "yelp:r2"
+  conf: 0.85
+
+- id: o_r3
+  kind: observe
+  facts:
+    r3:
+      name: "Sushi Bar"
+      cuisine: "japanese"
+      price: 50
+      loc: [37.78, -122.41]
+      rating: 4.5
+      hours: ["12:00", "23:00"]
+  src: "yelp:r3"
+  conf: 0.85
+
+- id: o_r4
+  kind: observe
+  facts:
+    r4:
+      name: "Olive Branch"
+      cuisine: "italian"
+      price: 90
+      loc: [37.79, -122.41]
+      rating: 4.7
+      hours: ["17:00", "22:00"]
+  src: "yelp:r4"
+  conf: 0.85
+
+- id: o_r5
+  kind: observe
+  facts:
+    r5:
+      name: "Roma"
+      cuisine: "italian"
+      price: 50
+      loc: [37.78, -122.40]
+      rating: 4.5
+      hours: ["12:00", "19:00"]
+  src: "yelp:r5"
+  conf: 0.85
+
+# --- rules ---
+
+- id: r_cuisine
+  kind: rule
+  head: cuisine_match(R)
+  body: R.cuisine == user.cuisine
+  conf: 0.95
+
+- id: r_budget
+  kind: rule
+  head: within_budget(R)
+  body: R.price <= user.budget
+  conf: 0.99
+
+- id: r_nearby
+  kind: rule
+  head: nearby(R)
+  body: distance_km(R.loc, user.loc) < 2.0
+  conf: 0.90
+
+- id: r_open
+  kind: rule
+  head: open_now(R)
+  body: time.now >= R.hours[0] and time.now <= R.hours[1]
+  conf: 0.95
+
+- id: r_match
+  kind: rule
+  head: good_match(R)
+  body: cuisine_match(R) and within_budget(R) and nearby(R) and open_now(R)
+  conf: 0.95
+
+# --- inferences for r1 (passes all four filters) ---
+
+- id: i_r1_cuisine
+  kind: infer
+  conclusion: cuisine_match(r1)
+  from: [o_r1, o_user]
+  via: r_cuisine
+  conf: 0.808     # 0.85 * 1.0 * 0.95
+
+- id: i_r1_budget
+  kind: infer
+  conclusion: within_budget(r1)
+  from: [o_r1, o_user]
+  via: r_budget
+  conf: 0.842     # 0.85 * 1.0 * 0.99
+
+- id: i_r1_nearby
+  kind: infer
+  conclusion: nearby(r1)
+  from: [o_r1, o_loc]
+  via: r_nearby
+  conf: 0.757     # 0.85 * 0.99 * 0.90
+
+- id: i_r1_open
+  kind: infer
+  conclusion: open_now(r1)
+  from: [o_r1, o_time]
+  via: r_open
+  conf: 0.808     # 0.85 * 1.0 * 0.95
+
+- id: i_r1_good
+  kind: infer
+  conclusion: good_match(r1)
+  from: [i_r1_cuisine, i_r1_budget, i_r1_nearby, i_r1_open]
+  via: r_match
+  conf: 0.395     # 0.808 * 0.842 * 0.757 * 0.808 * 0.95
+
+# --- inferences for r2 (passes all four) ---
+
+- id: i_r2_cuisine
+  kind: infer
+  conclusion: cuisine_match(r2)
+  from: [o_r2, o_user]
+  via: r_cuisine
+  conf: 0.808
+
+- id: i_r2_budget
+  kind: infer
+  conclusion: within_budget(r2)
+  from: [o_r2, o_user]
+  via: r_budget
+  conf: 0.842
+
+- id: i_r2_nearby
+  kind: infer
+  conclusion: nearby(r2)
+  from: [o_r2, o_loc]
+  via: r_nearby
+  conf: 0.757
+
+- id: i_r2_open
+  kind: infer
+  conclusion: open_now(r2)
+  from: [o_r2, o_time]
+  via: r_open
+  conf: 0.808
+
+- id: i_r2_good
+  kind: infer
+  conclusion: good_match(r2)
+  from: [i_r2_cuisine, i_r2_budget, i_r2_nearby, i_r2_open]
+  via: r_match
+  conf: 0.395
+
+# --- considered and rejected ---
+
+- id: c_r3
+  kind: consider
+  candidate: r3
+  rejected_by: r_cuisine
+  reason: "r3.cuisine is 'japanese', user.cuisine is 'italian'"
+
+- id: c_r4
+  kind: consider
+  candidate: r4
+  rejected_by: r_budget
+  reason: "r4.price ($90) exceeds user.budget ($80)"
+
+- id: c_r5
+  kind: consider
+  candidate: r5
+  rejected_by: r_open
+  reason: "r5 closes at 19:00; current time is 19:30"
+
+# --- decision ---
+
+- id: d_recommend
+  kind: decide
+  conclusion: recommend == r1
+  from: [i_r1_good, i_r2_good]
+  via: rank_by_rating
+  conf: 0.395
+  reason: "r1 (rating 4.6) outranks r2 (rating 4.4); both satisfy all hard constraints with equal good_match confidence"
+  caveat: "r2 has later hours and may suit a larger party; r4 would be preferred if budget were $20 higher"
